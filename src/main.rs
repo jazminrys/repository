@@ -1,4 +1,4 @@
-use project::run; // Replace `project` with the actual crate name if different
+use project::run; 
 use std::io;
 
 fn main() {

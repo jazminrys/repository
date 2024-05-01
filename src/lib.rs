@@ -42,43 +42,34 @@ pub fn run<W: Write>(writer: &mut W) -> Result<(), Box<dyn Error>> {
     for result in rdr.records() {
         let record = result?;
         println!("Processing record: {:?}", record);
-    
         let origin_airport_id: u32 = record[2].parse()?;
         let origin = record[3].to_string();
         let origin_city_name = record[4].to_string();
         let dest_airport_id: u32 = record[5].parse()?;
         let dest = record[6].to_string();
         let dest_city_name = record[7].to_string();
-    
         println!("Origin Airport ID: {}, Name: {}, City: {}", origin_airport_id, origin, origin_city_name);
         println!("Destination Airport ID: {}, Name: {}, City: {}", dest_airport_id, dest, dest_city_name);
-    
-        // Manage origin airport node
         let origin_node_index = *node_indices.entry(origin_airport_id).or_insert_with(|| {
             let airport = Airport::new(origin_airport_id, origin.clone(), origin_city_name.clone());
             println!("Adding origin airport to graph: {:?}", airport);
             graph.add_node(airport)
         });
-    
-        // Manage destination airport node
         let dest_node_index = *node_indices.entry(dest_airport_id).or_insert_with(|| {
             let airport = Airport::new(dest_airport_id, dest.clone(), dest_city_name.clone());
             println!("Adding destination airport to graph: {:?}", airport);
             graph.add_node(airport)
         });
-    
         println!("Adding edge from {} to {}", origin, dest);
         graph.add_edge(origin_node_index, dest_node_index, ());
-    
-        // Update flight count for origin airport
         if let Some(origin_airport) = graph.node_weight_mut(origin_node_index) {
             println!("Before updating, flights for {}: {}", origin_airport_id, origin_airport.flights);
             origin_airport.flights += 1;
-            total_flights_processed += 1;  // Increment the total flights processed
+            total_flights_processed += 1;  
             println!("After updating, flights for {}: {}", origin_airport_id, origin_airport.flights);
         }
     }
-    println!("Total flights processed: {}", total_flights_processed);  // Print total flights processed
+    println!("Total flights processed: {}", total_flights_processed);  
 
     let mut origin_airports_heap: BinaryHeap<&Airport> = BinaryHeap::new();
     for node_index in graph.node_indices() {
@@ -88,14 +79,15 @@ pub fn run<W: Write>(writer: &mut W) -> Result<(), Box<dyn Error>> {
             }
         }
     }
-
-    write!(writer, "Airports ranked by the number of flights (origin):\n")?;
+    write!(writer, "Airports (nodes) ranked by the number of originating flights (degree):\n")?;
+    let mut node = 1;
     while let Some(airport) = origin_airports_heap.pop() {
         write!(
             writer,
-            "Airport ID: {}, Name: {}, City: {}, Flights: {}\n",
-            airport.id, airport.name, airport.city, airport.flights
+            "Node: {}, Name: {}, City: {}, Degree: {}\n",
+            node, airport.name, airport.city, airport.flights
         )?;
+        node += 1;
     }
 
     Ok(())
