@@ -140,7 +140,7 @@ pub fn run<W: Write>(writer: &mut W) -> Result<(), Box<dyn Error>> {
     }
     let mut top_routes = route_counts.into_iter().collect::<Vec<_>>();
     top_routes.sort_by(|(_, count1), (_, count2)| count2.cmp(&count1));
-    writeln!(writer, "Top five routes")?;
+    writeln!(writer, "Top five routes:")?;
     for (i, ((origin_id, dest_id), count)) in top_routes.iter().take(5).enumerate() {
         let origin_name = graph.node_weight(node_indices[origin_id]).unwrap().name.as_str();
         let dest_name = graph.node_weight(node_indices[dest_id]).unwrap().name.as_str();
