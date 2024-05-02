@@ -9,6 +9,17 @@ edition = "2021"
 csv = "1.1"
 petgraph = "0.5.1"
 
+[dev-dependencies]
+tempfile = "3.3.0"
+
 [[bin]]
 name = "project"
-path = "project.rs"
+path = "src/main.rs"
+
+[lib]
+name = "project"  # The library name, usually the same as the package name
+path = "src/lib.rs"
+
+[[test]]
+name = "test"
+path = "tests/test.rs"
