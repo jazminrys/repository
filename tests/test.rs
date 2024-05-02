@@ -1,6 +1,6 @@
 use std::io::Write;
 use tempfile::NamedTempFile;
-use project::run;
+use project::run; // Assuming 'project' is the name of your crate
 
 #[test]
 fn test_run_function() {
@@ -17,7 +17,7 @@ fn test_run_function() {
     .expect("Failed to write to temporary file");
     file.as_file_mut()
         .sync_all()
-        .expect("Failed to flush changes"); 
+        .expect("Failed to flush changes");
     let file_path = file.into_temp_path();
     std::env::set_var(
         "CSV_FILE_PATH",
@@ -45,7 +45,7 @@ fn test_run_function() {
          Top destination cities for SJC (San Jose, CA):\n\
          1. Lihue, HI\n\
          Top destination cities for OAK (Oakland, CA):\n\
-         1. Houston, TX
+         1. Houston, TX\n\
          Top five routes\n\
          1. SFO to DEN: 1 flights\n\
          2. OAK to HOU: 1 flights\n\
