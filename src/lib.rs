@@ -6,7 +6,7 @@ use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::cmp::Ordering;
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct Airport {
+pub struct Airport { ///features ill be focusing on
     pub id: u32,
     pub name: String,
     pub city: String,
@@ -44,7 +44,7 @@ pub fn run<W: Write>(writer: &mut W) -> Result<(), Box<dyn Error>> {
     let file_path = std::env::var("CSV_FILE_PATH").unwrap_or_else(|_| "airport.csv".to_string());
     let mut rdr = Reader::from_path(file_path)?;
 
-    let mut graph = DiGraph::<Airport, ()>::new();
+    let mut graph = DiGraph::<Airport, ()>::new(); ///graph with airports as the nodes
     let mut node_indices: HashMap<u32, NodeIndex> = HashMap::new();
     let mut total_flights_processed = 0;
     let mut route_counts: HashMap<(u32, u32), usize> = HashMap::new();
@@ -61,10 +61,10 @@ pub fn run<W: Write>(writer: &mut W) -> Result<(), Box<dyn Error>> {
         let dest = record[6].to_string();
         let dest_city_name = record[7].to_string();
         let route = (origin_airport_id, dest_airport_id);
-        total_flights += 1;
+        total_flights += 1;  
         let passengers: usize = record[0].chars()
-            .filter(|c| c.is_digit(10)) // Keep only digits
-            .collect::<String>() // Collect the digits into a String
+            .filter(|c| c.is_digit(10)) 
+            .collect::<String>() 
             .parse()
             .unwrap_or(0);
         total_passengers += passengers;
@@ -79,18 +79,21 @@ pub fn run<W: Write>(writer: &mut W) -> Result<(), Box<dyn Error>> {
             graph.add_node(airport)
         });
 
-        graph.add_edge(origin_node_index, dest_node_index, ());
+        graph.add_edge(origin_node_index, dest_node_index, ()); ///route to destination is edge
+
 
         if let Some(origin_airport) = graph.node_weight_mut(origin_node_index) {
+            println!("Before updating, flights for {}: {}", origin_airport_id, origin_airport.flights);
             origin_airport.flights += 1;
-            origin_airport.destinations.insert(dest_airport_id);
-            total_flights_processed += 1;
+            origin_airport.destinations.insert(dest_airport_id); 
+            total_flights_processed += 1;  ///to ensure there are no errors
+            println!("After updating, flights for {}: {}", origin_airport_id, origin_airport.flights);
         }
         if let Some(dest_airport) = graph.node_weight_mut(dest_node_index) {
             dest_airport.passengers += passengers;
         }
     }
-    println!("Total flights processed: {}", total_flights_processed);
+    println!("Total flights processed: {}", total_flights_processed);  
     let mut origin_airports_heap: BinaryHeap<&Airport> = BinaryHeap::new();
     for node_index in graph.node_indices() {
         if let Some(airport) = graph.node_weight(node_index) {
