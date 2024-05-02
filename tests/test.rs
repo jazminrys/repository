@@ -38,7 +38,7 @@ fn test_run_function() {
          Node: 1, Name: SJC, City: San Jose, CA, Degree: 1, Average Passengers per Flight: 114.00, Destinations: 1\n\
          Node: 2, Name: ORD, City: Chicago, IL, Degree: 1, Average Passengers per Flight: 3414.00, Destinations: 1\n\
          Node: 3, Name: OAK, City: Oakland, CA, Degree: 1, Average Passengers per Flight: 1532.00, Destinations: 1\n\
-         Node: 4, Name: SFO, City: San Francisco, CA, Degree: 2, Average Passengers per Flight: 1875500, Destinations: 2\n\
+         Node: 4, Name: SFO, City: San Francisco, CA, Degree: 2, Average Passengers per Flight: 1875.50, Destinations: 2\n\
          Top destination cities for SFO (San Francisco, CA):\n\
          1. Dallas/Fort Worth, TX\n\
          2. Denver, CO\n\
