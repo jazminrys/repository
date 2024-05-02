@@ -6,6 +6,7 @@ use csv::Reader;
 use petgraph::graph::{DiGraph, NodeIndex};
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::cmp::Ordering;
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct Airport {
     pub id: u32,
@@ -17,7 +18,7 @@ pub struct Airport {
 }
 impl Airport {
     pub fn new(id: u32, name: String, city: String) -> Self {
-        Airport {
+        Airport { //features ill be focusing on
             id,
             name,
             city,
@@ -40,12 +41,13 @@ impl PartialOrd for Airport {
 pub fn run<W: Write>(writer: &mut W) -> Result<(), Box<dyn Error>> {
     let file_path = std::env::var("CSV_FILE_PATH").unwrap_or_else(|_| "airport.csv".to_string());
     let mut rdr = Reader::from_path(file_path)?;
-    let mut graph = DiGraph::<Airport, ()>::new();
+    let mut graph = DiGraph::<Airport, ()>::new(); //create graph with airports as the nodes
     let mut node_indices: HashMap<u32, NodeIndex> = HashMap::new();
     let mut total_flights_processed = 0;
     let mut route_counts: HashMap<(u32, u32), usize> = HashMap::new();
     let mut total_flights = 0;
     let mut total_passengers = 0;
+
     for result in rdr.records() {
         let record = result?;
         println!("Processing record: {:?}", record);
@@ -73,12 +75,12 @@ pub fn run<W: Write>(writer: &mut W) -> Result<(), Box<dyn Error>> {
             graph.add_node(airport)
         });
         println!("Adding edge from {} to {}", origin, dest);
-        graph.add_edge(origin_node_index, dest_node_index, ());
+        graph.add_edge(origin_node_index, dest_node_index, ()); //route to desination is edge
         if let Some(origin_airport) = graph.node_weight_mut(origin_node_index) {
             println!("Before updating, flights for {}: {}", origin_airport_id, origin_airport.flights);
             origin_airport.flights += 1;
             origin_airport.destinations.insert(dest_airport_id); 
-            total_flights_processed += 1;  
+            total_flights_processed += 1;  //to ensure there are no errors
             println!("After updating, flights for {}: {}", origin_airport_id, origin_airport.flights);
         }
         if let Some(dest_airport) = graph.node_weight_mut(dest_node_index) {
