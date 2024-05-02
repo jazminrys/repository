@@ -1,5 +1,3 @@
-extern crate csv;
-extern crate petgraph;
 use std::io::Write;
 use std::error::Error;
 use csv::Reader;
@@ -14,34 +12,39 @@ pub struct Airport {
     pub city: String,
     pub flights: usize,
     pub passengers: usize,
-    pub destinations: HashSet<u32>, 
+    pub destinations: HashSet<u32>,
 }
+
 impl Airport {
     pub fn new(id: u32, name: String, city: String) -> Self {
-        Airport { //features ill be focusing on
+        Airport {
             id,
             name,
             city,
             flights: 0,
             passengers: 0,
-            destinations: HashSet::new(), 
+            destinations: HashSet::new(),
         }
     }
 }
+
 impl Ord for Airport {
     fn cmp(&self, other: &Self) -> Ordering {
         other.flights.cmp(&self.flights)
     }
 }
+
 impl PartialOrd for Airport {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
+
 pub fn run<W: Write>(writer: &mut W) -> Result<(), Box<dyn Error>> {
     let file_path = std::env::var("CSV_FILE_PATH").unwrap_or_else(|_| "airport.csv".to_string());
     let mut rdr = Reader::from_path(file_path)?;
-    let mut graph = DiGraph::<Airport, ()>::new(); //create graph with airports as the nodes
+
+    let mut graph = DiGraph::<Airport, ()>::new();
     let mut node_indices: HashMap<u32, NodeIndex> = HashMap::new();
     let mut total_flights_processed = 0;
     let mut route_counts: HashMap<(u32, u32), usize> = HashMap::new();
@@ -50,7 +53,7 @@ pub fn run<W: Write>(writer: &mut W) -> Result<(), Box<dyn Error>> {
 
     for result in rdr.records() {
         let record = result?;
-        println!("Processing record: {:?}", record);
+
         let origin_airport_id: u32 = record[2].parse()?;
         let origin = record[3].to_string();
         let origin_city_name = record[4].to_string();
@@ -59,40 +62,35 @@ pub fn run<W: Write>(writer: &mut W) -> Result<(), Box<dyn Error>> {
         let dest_city_name = record[7].to_string();
         let route = (origin_airport_id, dest_airport_id);
         total_flights += 1;
-        let passengers: usize = record[0].parse().unwrap_or(0);
+        let passengers: usize = record[0].chars()
+            .filter(|c| c.is_digit(10)) // Keep only digits
+            .collect::<String>() // Collect the digits into a String
+            .parse()
+            .unwrap_or(0);
         total_passengers += passengers;
         *route_counts.entry(route).or_insert(0) += 1;
-        println!("Origin Airport ID: {}, Name: {}, City: {}", origin_airport_id, origin, origin_city_name);
-        println!("Destination Airport ID: {}, Name: {}, City: {}", dest_airport_id, dest, dest_city_name);
+
         let origin_node_index = *node_indices.entry(origin_airport_id).or_insert_with(|| {
             let airport = Airport::new(origin_airport_id, origin.clone(), origin_city_name.clone());
-            println!("Adding origin airport to graph: {:?}", airport);
             graph.add_node(airport)
         });
         let dest_node_index = *node_indices.entry(dest_airport_id).or_insert_with(|| {
             let airport = Airport::new(dest_airport_id, dest.clone(), dest_city_name.clone());
-            println!("Adding destination airport to graph: {:?}", airport);
             graph.add_node(airport)
         });
-        println!("Adding edge from {} to {}", origin, dest);
-        graph.add_edge(origin_node_index, dest_node_index, ()); //route to desination is edge
+
+        graph.add_edge(origin_node_index, dest_node_index, ());
+
         if let Some(origin_airport) = graph.node_weight_mut(origin_node_index) {
-            println!("Before updating, flights for {}: {}", origin_airport_id, origin_airport.flights);
             origin_airport.flights += 1;
-            origin_airport.destinations.insert(dest_airport_id); 
-            total_flights_processed += 1;  //to ensure there are no errors
-            println!("After updating, flights for {}: {}", origin_airport_id, origin_airport.flights);
+            origin_airport.destinations.insert(dest_airport_id);
+            total_flights_processed += 1;
         }
         if let Some(dest_airport) = graph.node_weight_mut(dest_node_index) {
-            let passengers: usize = record[0].parse().unwrap_or(0);
             dest_airport.passengers += passengers;
         }
-        if let Some(origin_airport) = graph.node_weight_mut(origin_node_index) {
-        let passengers: usize = record[0].parse().unwrap_or(0);
-        origin_airport.passengers += passengers;
-        }
     }
-    println!("Total flights processed: {}", total_flights_processed);  
+    println!("Total flights processed: {}", total_flights_processed);
     let mut origin_airports_heap: BinaryHeap<&Airport> = BinaryHeap::new();
     for node_index in graph.node_indices() {
         if let Some(airport) = graph.node_weight(node_index) {
@@ -111,8 +109,8 @@ pub fn run<W: Write>(writer: &mut W) -> Result<(), Box<dyn Error>> {
         };
         write!(
             writer,
-            "Node: {}, Name: {}, City: {}, Degree: {}, Average Passengers per Flight: {:.2}, Destinations: {}\n",
-            node, airport.name, airport.city, airport.flights, avg_passengers_per_flight, airport.destinations.len()
+            "Node: {}, Name: {}, City: {}, Degree: {}, Passenger: {}, Average Passengers per Flight: {:.2}, Destinations: {}\n",
+            node, airport.name, airport.city, airport.flights, airport.passengers, avg_passengers_per_flight, airport.destinations.len()
         )?;
         node += 1;
     }
