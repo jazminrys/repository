@@ -17,7 +17,7 @@ fn test_run_function() {
     .expect("Failed to write to temporary file");
     file.as_file_mut()
         .sync_all()
-        .expect("Failed to flush changes to disk"); // Flushes changes to disk
+        .expect("Failed to flush changes"); 
     let file_path = file.into_temp_path();
     std::env::set_var(
         "CSV_FILE_PATH",
